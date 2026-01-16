@@ -1,0 +1,18 @@
+{
+  "name": "authlite-express",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": "./src/index.js",
+  "description": "Lightweight plug and play authentication and authorization for Express.js",
+  "keywords": [
+    "auth",
+    "express",
+    "jwt",
+    "rbac"
+  ],
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
