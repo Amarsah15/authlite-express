@@ -2,11 +2,11 @@
 
 A lightweight, plug-and-play **authentication and authorization SDK for Express.js**, inspired by the developer experience of platforms like Clerk, but designed to be **self-hosted, minimal, and backend-focused**.
 
-This library abstracts common authentication logic (JWT, password hashing, RBAC, middleware) into a reusable npm package so developers don’t have to reimplement auth in every Express project.
+This library abstracts authentication logic (JWT, password hashing, RBAC, middleware) into a reusable npm package so developers don’t have to reimplement auth in every Express project.
 
 ---
 
-## ✨ Why authlite-express?
+## Why authlite-express?
 
 In most Express applications, developers repeatedly write:
 
@@ -19,7 +19,7 @@ In most Express applications, developers repeatedly write:
 
 ---
 
-## 📂 Project Folder Structure (Library)
+## 📂 Project Folder Structure
 
 ```
 authlite-express/
@@ -40,34 +40,21 @@ authlite-express/
 │
 ├── package.json
 ├── README.md
+├── .gitignore
 └── .npmignore
 ```
 
 ---
 
-## 🚀 Features (MVP)
+## 🚀 Features
 
 - JWT-based authentication
 - Secure password hashing using bcrypt
 - Role-Based Access Control (RBAC)
 - Plug-and-play Express middleware
-- ES Modules (`type: module`) support
 - Minimal configuration
 - Fully self-hosted (no third-party auth provider)
-
----
-
-## ❌ Non-Goals (Intentional)
-
-To keep the library focused and maintainable, the following are **out of scope for the MVP**:
-
-- OAuth (Google, GitHub, etc.)
-- Refresh tokens
-- Cookie-based sessions
-- UI components
-- Opinionated database adapters
-
----
+- Written in modern JavaScript (ES6+)
 
 ## 📦 Installation
 
@@ -85,8 +72,8 @@ import { initAuth } from "authlite-express";
 initAuth({
   jwtSecret: process.env.JWT_SECRET,
   userModel: User,
-  roleField: "role", // optional (default: "role")
-  tokenExpiry: "7d", // optional (default: "7d")
+  roleField: "role",
+  tokenExpiry: "7d",
 });
 ```
 
@@ -94,7 +81,7 @@ initAuth({
 
 ---
 
-## 🔐 Authentication API
+## Authentication API
 
 ### Register User
 
@@ -121,7 +108,7 @@ const { user, token } = await AuthService.loginUser({
 
 ---
 
-## 🛡️ Middleware Usage
+## Middleware Usage
 
 ### Authenticate Requests
 
@@ -142,6 +129,27 @@ app.get("/admin", authenticate(), authorize("admin"), (req, res) =>
   res.send("Admin access granted")
 );
 ```
+
+---
+
+## 📌 Demo Application
+
+A complete **Express.js demo application** demonstrating real-world usage of
+`authlite-express` is available here:
+
+👉 **Demo Repository:**  
+https://github.com/Amarsah15/authlite-express-demo
+
+### What the demo shows
+
+- User registration using `AuthService.registerUser`
+- User login with JWT generation
+- Route protection using `authenticate()` middleware
+- Role-based access control using `authorize()`
+- MongoDB integration (Docker-based)
+
+The demo app intentionally keeps business logic minimal to highlight the
+developer experience and integration flow of the library.
 
 ---
 
@@ -171,45 +179,44 @@ authlite-express-demo/
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import {
-  initAuth,
-  authenticate,
-  authorize,
-  AuthService,
-} from "authlite-express";
+import authRoutes from "./routes/auth.routes.js";
 import User from "./models/User.js";
+import { initAuth } from "authlite-express";
 
 dotenv.config();
+
 const app = express();
 app.use(express.json());
 
+// Database connection
 await mongoose.connect(process.env.MONGO_URI);
+console.log("MongoDB connected");
 
+// Initialize authlite-express
 initAuth({
   jwtSecret: process.env.JWT_SECRET,
   userModel: User,
   roleField: "role",
 });
 
-app.post("/login", async (req, res) => {
-  try {
-    const data = await AuthService.loginUser(req.body);
-    res.json(data);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
+// Routes
+app.use("/", authRoutes);
+
+// Health check
+app.get("/", (req, res) => {
+  res.send("authlite-express demo running");
 });
 
-app.get("/admin", authenticate(), authorize("admin"), (req, res) =>
-  res.send("Admin access granted")
-);
-
-app.listen(3000, () => console.log("Demo server running"));
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
 ```
 
 ---
 
-## 🧠 How It Works (High Level)
+## How It Works
 
 1. Passwords are hashed using bcrypt during registration
 2. JWT is generated on successful login
