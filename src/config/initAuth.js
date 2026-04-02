@@ -11,9 +11,21 @@ export function initAuth(options) {
 
   config = {
     jwtSecret: options.jwtSecret,
-    tokenExpiry: options.tokenExpiry || "7d",
     userModel: options.userModel,
     roleField: options.roleField || "role",
+
+    refreshSecret: options.refreshSecret || options.jwtSecret,
+    accessTokenExpiry: options.accessTokenExpiry || "15m",
+    refreshTokenExpiry: options.refreshTokenExpiry || "7d",
+
+    resetTokenExpiry: options.resetTokenExpiry || 15 * 60 * 1000,
+    resetPasswordUrl: options.resetPasswordUrl,
+
+    mailService: options.mailService,
+
+    verifyTokenExpiry: options.verifyTokenExpiry || 24 * 60 * 60 * 1000,
+    verifyEmailUrl: options.verifyEmailUrl,
+    requireEmailVerification: options.requireEmailVerification || false,
   };
 }
 

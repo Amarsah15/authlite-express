@@ -1,25 +1,47 @@
-import { verifyToken } from "../core/TokenService.js";
+import { verifyAccessToken } from "../core/TokenService.js";
+import { createError, ERROR } from "../utils/AppError.js";
+
+function extractToken(req) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    throw createError(ERROR.UNAUTHORIZED);
+  }
+
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    throw createError({
+      message: "Invalid authorization format",
+      statusCode: 401,
+      code: "INVALID_AUTH_FORMAT",
+    });
+  }
+
+  return token;
+}
 
 export function authenticate() {
   return (req, res, next) => {
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+      const token = extractToken(req);
 
-      if (!authHeader.startsWith("Bearer ")) {
-        return res
-          .status(401)
-          .json({ message: "Invalid authorization format" });
-      }
+      const decoded = verifyAccessToken(token);
 
-      const token = authHeader.split(" ")[1];
-      req.user = verifyToken(token);
+      req.user = decoded;
 
       next();
-    } catch {
-      res.status(401).json({ message: "Invalid token" });
+    } catch (err) {
+      if (err.statusCode) {
+        return next(err);
+      }
+      return next(
+        createError({
+          message: "Invalid or expired access token",
+          statusCode: 401,
+          code: "INVALID_ACCESS_TOKEN",
+        }),
+      );
     }
   };
 }
